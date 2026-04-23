@@ -1,3 +1,4 @@
 thesis	attempt	metric	baseline	status	summary
 #1	thesis/1-optimize-parseurl-regex-matching-with-pre-compiled-patterns	843818.0000	821727.0000	accepted	Pre-compiled regex patterns and added fast-path for parsePath when no query/hash present. Shows ~2.7% improvement.
 #2	thesis/2-replace-object-create-null-with-plain-objects-in-parsequery	889603.0000	807000.0000	accepted	Replaced Object.create(null) with plain object {} in parseQuery. Added Object.hasOwn check for proper prototype handling. +10.2% improvement in harmonic mean.
+#3	thesis/3-optimize-string-concatenation-in-stringifyquery-and-encodequeryitem	900155.0000	825428.0000	accepted	Optimized stringifyQuery and encodeQueryItem by replacing array operations with direct string concatenation, reducing allocations and improving harmonic mean by ~9%
