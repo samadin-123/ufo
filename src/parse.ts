@@ -3,6 +3,12 @@ import { hasProtocol } from "./utils";
 
 const protocolRelative = Symbol.for("ufo:protocolRelative");
 
+// Pre-compiled regex patterns for parseURL optimization
+const SPECIAL_PROTO_REGEX = /^[\s\0]*(blob:|data:|javascript:|vbscript:)(.*)/i;
+const PROTOCOL_REGEX = /^[\s\0]*([\w+.-]{2,}:)?\/\/([^/@]+@)?(.*)/;
+const HOST_PATH_REGEX = /([^#/?]*)(.*)?/;
+const PATH_PARTS_REGEX = /([^#?]*)(\?[^#]*)?(#.*)?/;
+
 export interface ParsedURL {
   protocol?: string;
   host?: string;
@@ -49,9 +55,7 @@ export interface ParsedHost {
  * @returns A parsed URL object.
  */
 export function parseURL(input = "", defaultProto?: string): ParsedURL {
-  const _specialProtoMatch = input.match(
-    /^[\s\0]*(blob:|data:|javascript:|vbscript:)(.*)/i,
-  );
+  const _specialProtoMatch = input.match(SPECIAL_PROTO_REGEX);
   if (_specialProtoMatch) {
     const [, _proto, _pathname = ""] = _specialProtoMatch;
     return {
@@ -70,12 +74,10 @@ export function parseURL(input = "", defaultProto?: string): ParsedURL {
   }
 
   const [, protocol = "", auth, hostAndPath = ""] =
-    input
-      .replace(/\\/g, "/")
-      .match(/^[\s\0]*([\w+.-]{2,}:)?\/\/([^/@]+@)?(.*)/) || [];
+    input.replace(/\\/g, "/").match(PROTOCOL_REGEX) || [];
 
   // eslint-disable-next-line prefer-const
-  let [, host = "", path = ""] = hostAndPath.match(/([^#/?]*)(.*)?/) || [];
+  let [, host = "", path = ""] = hostAndPath.match(HOST_PATH_REGEX) || [];
 
   if (protocol === "file:") {
     path = path.replace(/\/(?=[A-Za-z]:)/, "");
@@ -110,8 +112,22 @@ export function parseURL(input = "", defaultProto?: string): ParsedURL {
  * @returns An object with three properties: `pathname`, `search`, and `hash`.
  */
 export function parsePath(input = ""): ParsedPath {
+  // Fast path for simple cases using indexOf
+  const hashIndex = input.indexOf("#");
+  const searchIndex = input.indexOf("?");
+
+  // No query or hash - common case
+  if (hashIndex === -1 && searchIndex === -1) {
+    return {
+      pathname: input,
+      search: "",
+      hash: "",
+    };
+  }
+
+  // Use regex for complex cases
   const [pathname = "", search = "", hash = ""] = (
-    input.match(/([^#?]*)(\?[^#]*)?(#.*)?/) || []
+    input.match(PATH_PARTS_REGEX) || []
   ).splice(1);
 
   return {
