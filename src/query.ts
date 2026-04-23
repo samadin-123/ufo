@@ -103,12 +103,15 @@ export function encodeQueryItem(
   }
 
   if (Array.isArray(value)) {
-    return value
-      .map(
-        (_value: QueryValue) =>
-          `${encodeQueryKey(key)}=${encodeQueryValue(_value)}`,
-      )
-      .join("&");
+    const encodedKey = encodeQueryKey(key);
+    let result = "";
+    let first = true;
+    for (const _value of value) {
+      if (!first) result += "&";
+      result += `${encodedKey}=${encodeQueryValue(_value)}`;
+      first = false;
+    }
+    return result;
   }
 
   return `${encodeQueryKey(key)}=${encodeQueryValue(value)}`;
@@ -130,9 +133,15 @@ export function encodeQueryItem(
  * @group Query_utils
  */
 export function stringifyQuery(query: QueryObject): string {
-  return Object.keys(query)
-    .filter((k) => query[k] !== undefined)
-    .map((k) => encodeQueryItem(k, query[k]))
-    .filter(Boolean)
-    .join("&");
+  let result = "";
+  let first = true;
+  for (const k in query) {
+    if (query[k] === undefined) continue;
+    const encoded = encodeQueryItem(k, query[k]);
+    if (!encoded) continue;
+    if (!first) result += "&";
+    result += encoded;
+    first = false;
+  }
+  return result;
 }
