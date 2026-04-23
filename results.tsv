@@ -1,1 +1,2 @@
 thesis	attempt	metric	baseline	status	summary
+#1	thesis/1-optimize-parseurl-regex-matching-with-pre-compiled-patterns	843818.0000	821727.0000	accepted	Pre-compiled regex patterns and added fast-path for parsePath when no query/hash present. Shows ~2.7% improvement.
