@@ -47,9 +47,7 @@ export type ParsedQuery = Record<string, string | string[]>;
 export function parseQuery<T extends ParsedQuery = ParsedQuery>(
   parametersString = "",
 ): T {
-  // TODO: Use new EmptyObject() instead of Object.create(null) for better performance in next major version
-  // https://github.com/unjs/ufo/pull/290
-  const object: ParsedQuery = Object.create(null);
+  const object: ParsedQuery = {} as ParsedQuery;
   if (parametersString[0] === "?") {
     parametersString = parametersString.slice(1);
   }
@@ -63,7 +61,7 @@ export function parseQuery<T extends ParsedQuery = ParsedQuery>(
       continue;
     }
     const value = decodeQueryValue(s[2] || "");
-    if (object[key] === undefined) {
+    if (!Object.hasOwn(object, key)) {
       object[key] = value;
     } else if (Array.isArray(object[key])) {
       (object[key] as string[]).push(value);
